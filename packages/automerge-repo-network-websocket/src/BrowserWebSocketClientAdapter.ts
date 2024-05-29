@@ -18,6 +18,7 @@ import {
 import { ProtocolV1 } from "./protocolVersion.js"
 import { assert } from "./assert.js"
 import { toArrayBuffer } from "./toArrayBuffer.js"
+import { sendChunked } from "./chunking.js"
 
 abstract class WebSocketNetworkAdapter extends NetworkAdapter {
   socket?: WebSocket
@@ -152,7 +153,7 @@ export class BrowserWebSocketClientAdapter extends WebSocketNetworkAdapter {
       throw new Error(`Websocket not ready (${this.socket.readyState})`)
 
     const encoded = cbor.encode(message)
-    this.socket.send(toArrayBuffer(encoded))
+    sendChunked(toArrayBuffer(encoded), this.socket)
   }
 
   peerCandidate(remotePeerId: PeerId, peerMetadata: PeerMetadata) {

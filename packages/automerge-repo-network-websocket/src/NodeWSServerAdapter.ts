@@ -19,6 +19,7 @@ import {
 import { ProtocolV1, ProtocolVersion } from "./protocolVersion.js"
 import { assert } from "./assert.js"
 import { toArrayBuffer } from "./toArrayBuffer.js"
+import { handleChunked } from "./chunking.js"
 
 const { encode, decode } = cborHelpers
 
@@ -47,9 +48,8 @@ export class NodeWSServerAdapter extends NetworkAdapter {
         this.#removeSocket(socket)
       })
 
-      socket.on("message", message =>
-        this.receiveMessage(message as Uint8Array, socket)
-      )
+      const receive = handleChunked(data => this.receiveMessage(data as Uint8Array, socket))
+      socket.on("message", receive)
 
       // Start out "alive", and every time we get a pong, reset that state.
       socket.isAlive = true
